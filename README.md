@@ -1,7 +1,6 @@
 # |WSL 2 - Ubuntu e instalação do FASM (Linux 64x)
 
 <aside>
-▶️
 
 ## **|Começando**
 
