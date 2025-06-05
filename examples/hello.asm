@@ -1,4 +1,3 @@
-
 ; fasm demonstration of writing simple ELF executable
 
 format ELF executable 3

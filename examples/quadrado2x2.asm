@@ -21,13 +21,13 @@ start:
 ; -------------------------------
 print_red:
     mov rax, 1
-    mov rdi, 1
+    mov rdi, 2
     mov rsi, fundo_vermelho
     mov rdx, fundo_vermelho_len
     syscall
 
     mov rax, 1
-    mov rdi, 1
+    mov rdi, 2
     mov rsi, pixel
     mov rdx, 1
     syscall
