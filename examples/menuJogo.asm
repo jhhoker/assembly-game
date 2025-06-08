@@ -73,12 +73,26 @@ _start:
     jmp _start      ; Qualquer outra tecla, volta ao início
 
 jogar:
+    jmp numero_secreto
     call limpar_tela
-    mov rsi, pressione
-    call print_string
-    call esperar_tecla
+                        ; Aqui haverá o jump pro loop do jogo
     jmp fim
 
+numero_secreto:
+    call limpar_tela
+    mov rsi, numero
+    call print_string
+    syscall
+
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, escolha
+    mov rdx, 4
+    syscall
+    
+    mov r12, escolha ; r12 é o registrador do número secreto
+    call limpar_tela
+    
 sair:
     call limpar_tela
     mov rsi, sair_msg
@@ -150,6 +164,8 @@ cor_amarelo db 27, '[93m', "1 a 10 -> Perto (amarelo)", 10, 27, '[0m', 0
 menu_opcao db 10, "Selecione uma opcao:", 10, 0
 menu1 db "1) Continuar e jogar!", 10, 0
 menu2 db "2) Sair do jogo.", 10, 0
+
+numero db "Digite o número a ser adivinhado pelos jogadores: ", 10, 0
 
 pressione db "Pressione qualquer tecla para sair...", 10, 0
 sair_msg db "Ok, ate a proxima!", 10, 0
