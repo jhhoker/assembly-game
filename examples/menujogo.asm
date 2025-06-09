@@ -1,140 +1,172 @@
-format ELF64 executable
-entry start
+format ELF64 executable 3
+entry _start
 
-segment readable writeable
-msg     db 'pressione 1 para Jogar', 10
-msg_len = $ - msg
-msg2 db 'pressione 0 para fechar', 10
-msg2_len = $ - msg2
-msg3 db 'encerrando...', 10
-msg3_len =$ - msg3
-msg4 db 'o jogo começou', 10
-msg4_len = $ - msg4
-msg5 db 10, 'input inválido! tente outro', 10, 10
-msg5_len = $ - msg5
-msg6 db 10, 'Regras do Jogo:', 10, \
-            '-----------------------------------------------------------------', 10, \
-            '• Será jogado por 2 pessoas.', 10, \
-            '• Cada pessoa terá 3 tentativas para acertar o número.', 10, \
-            '• O número-alvo estará entre 0 e 99.', 10, \
-            '• O resultado poderá ser vitória ou empate.', 10, \
-            '• Após uma Pessoa inserir um número e errar, deverá ser informada se o número a ser adivinhado é maior ou menor que o número inserido.', 10, \
-            '• Deverá conter um sinal colorido informando a distância do número-alvo:', 10, \
-            '    o Vermelho (muito longe)', 10, \
-            '    o Laranja (longe)', 10, \
-            '    o Amarelo (perto)', 10, \
-            '    o Verde (acertou)', 10, \
-            '• Após a vitória, deverá aparecer quem ganhou, Pessoa 1 ou Pessoa 2.', 10, 10
-msg6_len = $ - msg6
-msg7 db 10, 'jogador 1 faça sua tentativa: '
-msg7_len = $ - msg7
-msg8 db 10, 'jogador 2 faça sua tentatiava: '
-msg8_len = $ - msg8
-
-input_len equ 4;
-inputBuffer rb input_len 
+segment readable writable
+    escolha rb 2
 
 segment readable executable
-start:
-    mov     rax, 1; 
-    mov     rdi, 1; 
-    mov     rsi, msg6; 
-    mov     rdx, msg6_len; 
-    syscall  
-menu:
-    mov     rax, 1; 
-    mov     rdi, 1; 
-    mov     rsi, msg; 
-    mov     rdx, msg_len; 
-    syscall    
-    
-    mov     rax, 1; 
-    mov     rdi, 1; 
-    mov     rsi, msg2; 
-    mov     rdx, msg2_len; 
-    syscall; 
 
-    ;ler o input do usuario
-    mov  rax, 0; 
-    mov  rdi, 0;
-    mov  rsi, inputBuffer; 
-    mov  rdx, input_len; 
+_start:
+    ; Mostrar boas-vindas e instruções
+    mov rsi, bem_vindo
+    call print_string
+
+    mov rsi, instrucoes
+    call print_string
+
+    ; Mostrar regras
+    mov rsi, regra1
+    call print_string
+
+    mov rsi, regra2
+    call print_string
+
+    mov rsi, regra3
+    call print_string
+
+    mov rsi, regra4
+    call print_string
+
+    mov rsi, regra5
+    call print_string
+
+    mov rsi, regra6
+    call print_string
+
+    mov rsi, regra7
+    call print_string
+
+    ; Mostrar dicas com cores
+    mov rsi, cor_vermelho
+    call print_string
+
+    mov rsi, cor_laranja
+    call print_string
+
+    mov rsi, cor_amarelo
+    call print_string
+
+    ; Mostrar menu
+    mov rsi, menu_opcao
+    call print_string
+
+    mov rsi, menu1
+    call print_string
+
+    mov rsi, menu2
+    call print_string
+
+.ler_opcao:
+    ; Ler opção do usuário
+    mov rax, 0      ; syscall read
+    mov rdi, 0      ; stdin
+    mov rsi, escolha
+    mov rdx, 2
     syscall
 
-    mov  al, [rsi]
+    cmp byte [escolha], '1'
+    je jogar
 
-    cmp al, '0';
-        je saida;
+    cmp byte [escolha], '2'
+    je sair
 
-    cmp al, '1';
-        je jogar;
+    jmp _start      ; Qualquer outra tecla, volta ao início
 
-    ;se nao for 0 nem 1
-    invalido:
-        mov     rax, 1; 
-        mov     rdi, 1 ; 
-        mov     rsi, msg5; 
-        mov     rdx, msg5_len ;
-        syscall 
-        jmp menu;
+jogar:
+    jmp numero_secreto
+    call limpar_tela
+                        ; Aqui haverá o jump pro loop do jogo
+    jmp fim
 
-    saida:
-        mov     rax, 1; 
-        mov     rdi, 1 ; 
-        mov     rsi, msg3; 
-        mov     rdx, msg3_len ;
-        syscall 
-        jmp encerrar;
+numero_secreto:
+    call limpar_tela
+    mov rsi, numero
+    call print_string
+    syscall
 
-    jogar:
-        mov     rax, 1 ;
-        mov     rdi, 1 ;
-        mov     rsi, msg4 ; 
-        mov     rdx, msg4_len ; 
-        syscall
-
-        mov bl, '0';
-
-    jogador1:
-        mov     rax, 1 ;
-        mov     rdi, 1 ;
-        mov     rsi, msg7 ; 
-        mov     rdx, msg7_len ; 
-        syscall
-
-        mov  rax, 0; 
-        mov  rdi, 0;
-        mov  rsi, inputBuffer; 
-        mov  rdx, input_len; 
-        syscall
-
-        mov ah, [rsi];
-        ;aqui tem que ter o jump para a comparação, e a comparação deve ter um jump que leva para a label jogador2 ou um RET dependendo de como fizerem
-        
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, escolha
+    mov rdx, 4
+    syscall
     
-    jogador2:
-        xor ah, ah;
+    mov r12, escolha ; r12 é o registrador do número secreto
+    call limpar_tela
+    
+sair:
+    call limpar_tela
+    mov rsi, sair_msg
+    call print_string
+    jmp fim
 
-        mov     rax, 1 ;
-        mov     rdi, 1 ;
-        mov     rsi, msg8 ; 
-        mov     rdx, msg8_len ; 
-        syscall
+fim:
+    mov rax, 60     ; syscall exit
+    xor rdi, rdi
+    syscall
 
-        mov  rax, 0; 
-        mov  rdi, 0;
-        mov  rsi, inputBuffer; 
-        mov  rdx, input_len; 
-        syscall
+; -------------------------------
+; Função: print_string
+; Entrada: RSI = ponteiro para string terminada em 0
+print_string:
+    push rax
+    push rdi
+    push rdx
+    xor rax, rax
+.find_len:
+    cmp byte [rsi + rax], 0
+    je .done
+    inc rax
+    jmp .find_len
+.done:
+    mov rdx, rax        ; tamanho
+    mov rax, 1          ; syscall write
+    mov rdi, 1          ; stdout
+    syscall
+    pop rdx
+    pop rdi
+    pop rax
+    ret
 
-        mov ah, [rsi];
+; -------------------------------
+; Função: limpar_tela (usa comando ANSI)
+limpar_tela:
+    mov rsi, limpar
+    call print_string
+    ret
 
-        inc bl;
-        cmp bl, '3';
-            jne jogador1;
-        
-        
-    encerrar:
-        mov     rax, 60  ; 
-        xor     rdi, rdi ; 
-        syscall
+; -------------------------------
+; Função: esperar_tecla
+esperar_tecla:
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, escolha
+    mov rdx, 1
+    syscall
+    ret
+
+segment readable writable
+
+bem_vindo db "Seja bem-vindo ao jogo de adivinhacao da DAT :D", 10, 0
+instrucoes db "Leia atentamente as instrucoes a seguir:", 10, 0
+
+regra1 db "O jogo e uma competicao entre voce e outro jogador.", 10, 0
+regra2 db "Cada um vai tentar adivinhar um numero secreto entre 0 e 99.", 10, 0
+regra3 db "Os chutes acontecem de forma alternada: voce joga, depois o outro jogador.", 10, 0
+regra4 db "Apos cada tentativa, sera mostrado se o numero secreto e maior ou menor que o chute.", 10, 0
+regra5 db "Cada jogador tem 3 tentativas.", 10, 0
+regra6 db "O jogo termina quando alguem acerta ou quando acabam as tentativas.", 10, 0
+regra7 db "A distancia do chute sera mostrada com uma cor:", 10, 0
+
+cor_vermelho db 27, '[31m', "> 25 -> Muito longe (vermelho)", 10, 27, '[0m', 0
+cor_laranja db 27, '[33m', "11 a 24 -> Longe (laranja)", 10, 27, '[0m', 0
+cor_amarelo db 27, '[93m', "1 a 10 -> Perto (amarelo)", 10, 27, '[0m', 0
+
+menu_opcao db 10, "Selecione uma opcao:", 10, 0
+menu1 db "1) Continuar e jogar!", 10, 0
+menu2 db "2) Sair do jogo.", 10, 0
+
+numero db "Digite o número a ser adivinhado pelos jogadores: ", 10, 0
+
+pressione db "Pressione qualquer tecla para sair...", 10, 0
+sair_msg db "Ok, ate a proxima!", 10, 0
+limpar db 27, '[2J', 27, '[H', 0
