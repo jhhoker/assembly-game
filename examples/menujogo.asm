@@ -158,8 +158,8 @@ regra6 db "O jogo termina quando alguem acerta ou quando acabam as tentativas.",
 regra7 db "A distancia do chute sera mostrada com uma cor:", 10, 0
 
 cor_vermelho db 27, '[31m', "> 25 -> Muito longe (vermelho)", 10, 27, '[0m', 0
-cor_laranja db 27, '[33m', "11 a 24 -> Longe (laranja)", 10, 27, '[0m', 0
-cor_amarelo db 27, '[93m', "1 a 10 -> Perto (amarelo)", 10, 27, '[0m', 0
+cor_laranja db 27, '[38;5;208m', "11 a 24 -> Longe (laranja)", 10, 27, '[0m', 0
+cor_amarelo db 27, '[33m', "1 a 10 -> Perto (amarelo)", 10, 27, '[0m', 0
 
 menu_opcao db 10, "Selecione uma opcao:", 10, 0
 menu1 db "1) Continuar e jogar!", 10, 0
