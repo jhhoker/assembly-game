@@ -24,6 +24,7 @@ menu2        db "2) Sair do jogo.", 10, 0
 numero       db "Digite o numero a ser adivinhado pelos jogadores (0-99): ", 0
 sair_msg     db "Ok, ate a proxima!", 10, 0
 limpar       db 27, '[2J', 27, '[H', 0
+entrada_invalida db "Valor inválido, tente novamente: ", 0
 
 ; --- Variáveis do Loop de Jogo ---
 entry_msg db "Informe seu chute, Jogador ", 0
@@ -114,6 +115,7 @@ jogar:
     mov rsi, numero
     call print_string
 
+ler_numero:
     ; Ler o número secreto
     mov rax, 0
     mov rdi, 0
@@ -122,6 +124,10 @@ jogar:
     syscall
     mov rsi, escolha
     call atoi          ; Converte o número secreto para inteiro
+
+    cmp r14, 1
+    je ler_numero
+
     mov r15, rax       ; Guardamos o número secreto em R15 para uso global
 
     call limpar_tela
@@ -187,24 +193,29 @@ rounds_loop:
     ; --- Fim da Rodada ---
     dec r12
     cmp r12, 0
-    je fim_sem_vencedor 
+    je fim_sem_vencedor ; Se acabaram as rodadas, ninguém venceu
     jmp rounds_loop
 
 read_guess:
-    mov rax, 0      
-    mov rdi, 0      
+    mov rax, 0      ; syscall read
+    mov rdi, 0      ; stdin
     mov rsi, guess
-    mov rdx, 4      
+    mov rdx, 4      ; Ler até 3 dígitos + Enter
     syscall
-    mov rsi, guess  
-    call atoi       
-    mov r13, rax    
+    mov rsi, guess  ; Ponteiro para a string lida
+    call atoi       ; Converte para número, resultado em RAX
+    cmp r14, 1
+    je read_guess
+
+    mov r13, rax    ; Salva o chute convertido em R13
     ret
 
 treat_guess:
-
-    mov rbx, r15                
-    mov r8, r13                 
+    ; Prepara registradores para a função de calcular distancia
+    ; O número secreto está em R15 (definido no menu)
+    ; O chute do jogador está em R13 (lido em read_guess)
+    mov rbx, r15                ; Movo o número secreto para RBX, como a função espera
+    mov r8, r13                 ; Movo o chute para R8, como a função espera
     call calcular_e_imprimir_distancia
     ret
 
@@ -269,7 +280,7 @@ calcular_e_imprimir_distancia:
     ret
 
 .acertou:
-    mov byte [flag_acertou], 1 ; 
+    mov byte [flag_acertou], 1 ; SINALIZA QUE O JOGADOR ACERTOU!
     mov rax, 1
     mov rdi, 1
     mov rsi, color_green
@@ -319,19 +330,31 @@ limpar_tela:
     ret
 
 atoi:
+    ; Converte STR para INT
+    ; INPUT = RSI (ponteiro do primeiro caractere da string)
+    ; OUTPUT = RAX (valor convertido)
+    ; OUTPUT = R14 (flag de falha ao converter)
     xor  rax, rax
+    xor  r14, r14 ; Definindo flag como False incialmente
 .loop_atoi:
     movzx rdx, byte [rsi]
     cmp  dl, 10
-    je   .ret_atoi
+    je   .ret_success_atoi
     cmp  dl, '0'
-    jb   .ret_atoi
+    jb   .ret_fail_atoi
     cmp  dl, '9'
-    ja   .ret_atoi
+    ja   .ret_fail_atoi
     sub  dl, '0'
     imul rax, rax, 10
     add  rax, rdx
     inc  rsi
     jmp  .loop_atoi
-.ret_atoi:
+.ret_success_atoi:
+    cmp rax, 99
+    ja .ret_fail_atoi
+    ret
+.ret_fail_atoi:
+    mov r14, 1 ; Definindo flag de falha como True
+    mov rsi, entrada_invalida
+    call print_string
     ret
